@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
+import { getSessionAndKeycloakAccessToken } from "@/lib/server-auth";
 import { readOptionalEnv } from "@/lib/server-env";
 
 const backendUrl = readOptionalEnv("FASTAPI_GATEWAY_URL", "http://localhost:8000");
@@ -38,35 +38,15 @@ function readMessage(payload: unknown, fallback: string): string {
 
 export async function GET() {
   const requestHeaders = await headers();
-
-  const session = await auth.api.getSession({
-    headers: requestHeaders,
-  });
-
-  if (session == null) {
-    return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
-  }
-
-  let accessToken = "";
-  try {
-    const tokenResponse = await auth.api.getAccessToken({
-      headers: requestHeaders,
-      body: {
-        providerId: "keycloak",
-      },
-    });
-    accessToken = tokenResponse.accessToken;
-  } catch {
-    return NextResponse.json(
-      { message: "Unable to read Keycloak access token from session" },
-      { status: 401 },
-    );
+  const authContext = await getSessionAndKeycloakAccessToken(requestHeaders);
+  if (!authContext.ok) {
+    return authContext.response;
   }
 
   const authResponse = await fetch(`${backendUrl}/auth/me`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${authContext.accessToken}`,
     },
     cache: "no-store",
   });
@@ -107,7 +87,7 @@ export async function GET() {
   const userResponse = await fetch(`${backendUrl}/users/${encodeURIComponent(userId)}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${authContext.accessToken}`,
     },
     cache: "no-store",
   });

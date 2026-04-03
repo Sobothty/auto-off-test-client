@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { BackendMePanel } from "@/components/auth/backend-me-panel";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { GithubConnectPanel } from "@/components/integrations/github-connect-panel";
+import { GitProvidersPanel } from "@/components/integrations/git-providers-panel";
 import { auth } from "@/lib/auth";
 
 export default async function DashboardPage() {
@@ -44,12 +44,12 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Git Provider</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Git Providers</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Connect and manage your GitHub account for repository access.
+          Connect and manage your GitHub and GitLab accounts for repository access.
         </p>
         <div className="mt-4">
-          <GithubConnectPanel />
+          <GitProvidersPanel />
         </div>
       </section>
 
